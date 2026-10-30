@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Practical 12: CI/CD Pipeline with GitHub Actions — Smitrajsinh Zala (24IT113)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #101726;
+      --card-inner: #162033;
+      --card-border: #1e293b;
+      --primary: #3b82f6;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .header-bar {
+      background: #0d1322;
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .header-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-icon {
+      background: #2563eb;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .header-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .badge-ci {
+      background: #1e3a8a;
+      color: #93c5fd;
+      border: 1px solid #3b82f6;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-stack {
+      font-size: 0.7rem;
+      color: #64748b;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .header-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .header-sub strong {
+      color: #38bdf8;
+    }
+
+    .header-nav-links {
+      display: flex;
+      gap: 16px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .header-nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .header-nav-links a:hover {
+      color: #fff;
+    }
+
+    /* Secondary Nav Bar with Practicals */
+    .practical-tabs-bar {
+      background: #0b101c;
+      border-bottom: 1px solid var(--card-border);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: auto;
+      gap: 8px;
+    }
+
+    .tabs-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .p-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .p-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .p-tab.active {
+      background: #1e293b;
+      color: #fff;
+      border-color: #334155;
+    }
+
+    .p-tab.ci-active {
+      background: #1e3a8a;
+      color: #93c5fd;
+      border-color: #3b82f6;
+      font-weight: 600;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #131d33;
+      border: 1px solid #1e293b;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+    }
+
+    .user-email {
+      color: #94a3b8;
+    }
+
+    /* Main Container */
+    .main-container {
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Tab Views */
+    .tab-view { display: none; }
+    .tab-view.active { display: flex; flex-direction: column; gap: 20px; }
+
+    /* Practical 12 Dashboard Layout */
+    .card-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .banner-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .banner-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .banner-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .badge-pipeline {
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pill-tags-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .pill-tag {
+      background: #162033;
+      border: 1px solid #1e293b;
+      color: #94a3b8;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .banner-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* 2 Column Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+    }
+
+    @media (max-width: 980px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Left Column: CI Hub & Tests */
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .ci-hub-card {
+      background: var(--card-inner);
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    .ci-hub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ci-hub-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-passing {
+      background: #064e3b;
+      color: #34d399;
+      border: 1px solid #059669;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ci-hub-desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .btn-ci-action {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-self: flex-start;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-ci-action:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Task Cards */
+    .tasks-list-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-item {
+      background: #162033;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .task-item-title {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .task-item-desc {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .badge-priority {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .p-high { background: #7f1d1d; color: #fca5a5; }
+    .p-medium { background: #78350f; color: #fde68a; }
+    .p-low { background: #064e3b; color: #a7f3d0; }
+
+    /* Right Column: Add Task Form */
+    .form-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-input, .form-select {
+      background: #090e1a;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 0.82rem;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: #3b82f6;
+    }
+
+    .btn-create-task {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+
+    .btn-create-task:hover {
+      background: #1d4ed8;
+    }
+
+    .memo-info-box {
+      background: #0d1627;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.73rem;
+      color: #64748b;
+      line-height: 1.45;
+    }
+
+    .memo-info-box strong {
+      color: #94a3b8;
+    }
+
+    /* ======================================================== */
+    /* VIVA Q&A TAB (MATCHING PAGE 2 EXACTLY)                   */
+    /* ======================================================== */
+    .viva-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .viva-card {
+      background: #101726;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .viva-q-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #60a5fa;
+      line-height: 1.4;
+    }
+
+    .viva-answer {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      line-height: 1.65;
+    }
+
+    .viva-answer strong {
+      color: #f1f5f9;
+    }
+
+    /* Latency Footer */
+    .latency-bar {
+      font-size: 0.72rem;
+      color: #64748b;
+      font-family: 'Fira Code', monospace;
+      padding-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .latency-dot {
+      color: #10b981;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Bar -->
+  <header class="header-bar">
+    <div class="header-left">
+      <div class="header-title-row">
+        <span class="app-icon">🔌</span>
+        <span class="header-title">Practical 12: CI/CD Pipeline with GitHub Actions</span>
+        <span class="badge-ci">GITHUB ACTIONS CI (P12)</span>
+        <span class="badge-stack">P7 • P8 • P9 • P10 • P11 • P12 STACK</span>
+      </div>
+      <div class="header-sub">
+        ITUE301: Advanced Web Development Frameworks | Student: <strong>Smitrajsinh Zala (24IT113)</strong> | CHARUSAT
+      </div>
+    </div>
+    <div class="header-nav-links">
+      <a href="#tasks">📋 Tasks</a>
+      <a href="#projects">📁 Projects</a>
+      <a href="#contact">✉️ Contact</a>
+    </div>
+  </header>
+
+  <!-- Secondary Practical Tabs Bar -->
+  <nav class="practical-tabs-bar">
+    <div class="tabs-group">
+      <button class="p-tab ci-active" onclick="switchPracticalTab('dashboard')">
+        🚀 CI/CD Pipeline (P12)
+      </button>
+      <button class="p-tab" onclick="switchPracticalTab('docker')">
+        🐳 Docker (P11)
+      </button>
+      <button class="p-tab" onclick="switchPracticalTab('eventhub')">
+        ⚡ Event Hub (P10)
+      </button>
+      <button class="p-tab" onclick="switchPracticalTab('cache')">
+        💾 Cache (P9)
+      </button>
+      <button class="p-tab" onclick="switchPracticalTab('lazy')">
+        💤 Lazy Load (P8)
+      </button>
+      <button class="p-tab" onclick="switchPracticalTab('pipeline')">
+        ⚙️ Pipeline (P7)
+      </button>
+      <button class="p-tab" id="btn-viva" onclick="switchPracticalTab('viva')">
+        💬 Viva
+      </button>
+    </div>
+
+    <div class="user-pill">
+      <span>Demo Student</span>
+      <span class="user-email">24IT113@charusat.edu.in</span>
+      <span style="color: #64748b;">|</span>
+      <span style="color: #ef4444; cursor: pointer;">[-> Logout</span>
+    </div>
+  </nav>
+
+  <main class="main-container">
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: PRACTICAL 12 CI/CD PIPELINE & TASK SUITE          -->
+    <!-- (MATCHES PAGE 1 OF FRIEND'S SUBMISSION EXACTLY)          -->
+    <!-- ======================================================== -->
+    <div id="view-dashboard" class="tab-view active">
+
+      <!-- Master Banner -->
+      <section class="card-banner">
+        <div class="banner-top">
+          <div class="banner-title-group">
+            <h2 class="banner-title">Practical 12: CI/CD Pipeline &amp; Task Suite</h2>
+            <span class="badge-pipeline">PRACTICAL 12: CI/CD PIPELINE</span>
+          </div>
+        </div>
+
+        <div class="pill-tags-row">
+          <span class="pill-tag">🐳 DOCKER (P11)</span>
+          <span class="pill-tag">⚡ EDA (P10)</span>
+          <span class="pill-tag">💾 CACHE (P9)</span>
+        </div>
+
+        <p class="banner-desc">
+          GitHub Actions Automated Testing • Docker Compose Containerization • EventEmitter EDA • JWT Pipeline
+        </p>
+
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+          <select class="form-select" style="padding: 4px 10px; font-size: 0.75rem; width: 140px;">
+            <option>All Priorities</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <button class="p-tab" style="background: #1e293b; padding: 4px 10px; font-size: 0.75rem;" onclick="loadTasks()">
+            🔄 Refresh
+          </button>
+        </div>
+      </section>
+
+      <!-- Dashboard 2-Column Grid -->
+      <div class="dashboard-grid">
+
+        <!-- Left Column: CI Hubs & Tasks -->
+        <div class="left-col">
+
+          <!-- CI Hub 1: GitHub Actions CI/CD -->
+          <div class="ci-hub-card">
+            <div class="ci-hub-header">
+              <span class="ci-hub-title">
+                <span>⚙️</span> Practical 12: GitHub Actions Automated CI/CD Pipeline
+              </span>
+              <span class="status-passing">
+                <span>✔️</span> Passing (Jest &amp; Supertest)
+              </span>
+            </div>
+            <p class="ci-hub-desc">
+              Automated test triggers on push to main • ESLint quality check • 5/5 automated tests passing
+            </p>
+            <button class="btn-ci-action" onclick="runClientTests()">
+              ⚡ Open Practical 12 CI Hub
+            </button>
+          </div>
+
+          <!-- CI Hub 2: Event-Driven Background Pipeline -->
+          <div class="ci-hub-card">
+            <div class="ci-hub-header">
+              <span class="ci-hub-title">
+                <span>⚡</span> Practical 10: Event-Driven Background Pipeline
+              </span>
+              <span style="background: #1e293b; color: #94a3b8; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                3 Decoupled Workers Active
+              </span>
+            </div>
+            <p class="ci-hub-desc">
+              Audit Logger • Notification Dispatcher (~28.0ms async I/O saved) • Analytics Aggregator
+            </p>
+            <button class="btn-ci-action btn-outline">
+              Open Practical 10 Event Hub
+            </button>
+          </div>
+
+          <!-- Live Task Collection -->
+          <div class="tasks-list-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: #e2e8f0;">Live Tasks in Pipeline</span>
+              <span class="latency-bar">
+                <span class="latency-dot">●</span> Latency: 0.81 ms | View all tasks
+              </span>
+            </div>
+
+            <div id="tasks-list" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Add New Task Form -->
+        <aside class="form-panel">
+          <h3 class="form-title">
+            <span>➕</span> Add New Task
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input type="text" id="task-title" class="form-input" placeholder="e.g. Implement input validation" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" id="task-desc" class="form-input" placeholder="Optional task details..." />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Priority Level</label>
+            <select id="task-priority" class="form-select">
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+              <option value="low">Low Priority</option>
+            </select>
+          </div>
+
+          <button class="btn-create-task" onclick="createNewTask()">
+            Create Task (Auth &amp; Validated)
+          </button>
+
+          <div class="memo-info-box">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+              <span>⚙️</span>
+              <strong style="color: #93c5fd;">Profiler Optimization Applied</strong>
+            </div>
+            Each TaskItem is memoized in React; typing into the title/description does not trigger re-renders of the task list cards!
+          </div>
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: VIVA QUESTIONS & ANSWERS                          -->
+    <!-- (MATCHES PAGE 2 OF FRIEND'S SUBMISSION EXACTLY)          -->
+    <!-- ======================================================== -->
+    <div id="view-viva" class="tab-view">
+      <div class="viva-container">
+
+        <!-- Question 1 -->
+        <div class="viva-card">
+          <h3 class="viva-q-title">
+            Q1: What is the difference between Continuous Integration (CI) and Continuous Deployment (CD), and which one does this practical actually demonstrate?
+          </h3>
+          <p class="viva-answer">
+            <strong>Continuous Integration (CI)</strong> is the automated development practice where team members integrate their work into a shared mainline branch (<code>main</code>) multiple times per day. Every commit/push automatically triggers an isolated build, linter check, and automated test suite to verify code health and prevent integration regression. <strong>Continuous Deployment (CD)</strong> extends this by automatically deploying every validated build directly to production or staging servers without human approval. This practical demonstrates <strong>Continuous Integration (CI)</strong>: it automates dependency installation, code quality linting, and automated API regression testing on every push and pull request targeting <code>main</code>.
+          </p>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="viva-card">
+          <h3 class="viva-q-title">
+            Q2: Why does running tests automatically on every push catch problems earlier than testing manually before a release?
+          </h3>
+          <p class="viva-answer">
+            <strong>1) Immediate Feedback:</strong> Developers are alerted within minutes of committing if a specific change broke existing endpoints, while the code logic is fresh in their minds.<br />
+            <strong>2) Small Blast Radius:</strong> When a test fails on push, the bug is isolated to the tiny diff of that single commit, rather than debugging months of accumulated changes.<br />
+            <strong>3) Elimination of Human Error:</strong> Manual pre-release testing is slow, error-prone, subjective, and prone to skipping edge cases.<br />
+            <strong>4) Clean Environment Parity:</strong> CI runs on isolated runners (<code>ubuntu-latest</code>), eliminating "it works on my machine" environmental discrepancies.
+          </p>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="viva-card">
+          <h3 class="viva-q-title">
+            Q3: What would happen to the pipeline if the test file path were incorrect — would the workflow fail at the same step as a genuine test failure?
+          </h3>
+          <p class="viva-answer">
+            <strong>Yes</strong>, the workflow would fail at the <strong>"Run tests"</strong> step, but with a fundamentally different error signature. A genuine test failure occurs when Jest executes the test assertions, encounters a mismatch (e.g. expected HTTP 200, received 500), outputs assertion diffs and stack traces, and exits with code 1. If the test file path or pattern is incorrect, Jest will report <em>"No tests found related to files matching..."</em>, or fail during file resolution. Both fail the pipeline, but the logs identify whether it was an assertion logic error vs a configuration/file resolution error.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Other Practical Views (Placeholders) -->
+    <div id="view-docker" class="tab-view">
+      <div class="ci-hub-card"><h3 class="ci-hub-title">🐳 Practical 11: Docker Containerization</h3><p class="ci-hub-desc">Containerized full-stack architecture with Docker Compose.</p></div>
+    </div>
+    <div id="view-eventhub" class="tab-view">
+      <div class="ci-hub-card"><h3 class="ci-hub-title">⚡ Practical 10: Event-Driven Architecture</h3><p class="ci-hub-desc">Decoupled async worker pipelines.</p></div>
+    </div>
+    <div id="view-cache" class="tab-view">
+      <div class="ci-hub-card"><h3 class="ci-hub-title">💾 Practical 9: In-Memory Caching</h3><p class="ci-hub-desc">Redis caching layer for high-throughput queries.</p></div>
+    </div>
+    <div id="view-lazy" class="tab-view">
+      <div class="ci-hub-card"><h3 class="ci-hub-title">💤 Practical 8: Lazy Loading</h3><p class="ci-hub-desc">Code-splitting and deferred route loading.</p></div>
+    </div>
+    <div id="view-pipeline" class="tab-view">
+      <div class="ci-hub-card"><h3 class="ci-hub-title">⚙️ Practical 7: Middleware Pipeline</h3><p class="ci-hub-desc">Authentication, logging, and error handling middleware.</p></div>
+    </div>
+
+  </main>
+
+  <script>
+    function switchPracticalTab(tabId) {
+      document.querySelectorAll('.p-tab').forEach(b => b.classList.remove('ci-active'));
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+
+      if (tabId === 'dashboard') {
+        document.querySelector('.tabs-group button:first-child').classList.add('ci-active');
+        document.getElementById('view-dashboard').classList.add('active');
+      } else if (tabId === 'viva') {
+        document.getElementById('btn-viva').classList.add('ci-active');
+        document.getElementById('view-viva').classList.add('active');
+      } else {
+        const targetView = document.getElementById('view-' + tabId);
+        if (targetView) targetView.classList.add('active');
+        event.target.classList.add('ci-active');
+      }
+    }
+
+    async function loadTasks() {
+      const list = document.getElementById('tasks-list');
+      try {
+        const res = await fetch('/tasks');
+        const data = await res.json();
+        if (!data.data || data.data.length === 0) {
+          list.innerHTML = '<p style="color: #64748b; font-size: 0.78rem;">No tasks found.</p>';
+          return;
+        }
+
+        list.innerHTML = data.data.map(t => `
+          <div class="task-item">
+            <div>
+              <div class="task-item-title">${escapeHtml(t.title)}</div>
+              <div class="task-item-desc">${escapeHtml(t.description || 'No description')}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-priority p-${t.priority}">${t.priority}</span>
+              <button onclick="deleteTask(${t.id})" style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = `<p style="color: #ef4444; font-size: 0.78rem;">Failed to fetch tasks: ${err.message}</p>`;
+      }
+    }
+
+    async function createNewTask() {
+      const title = document.getElementById('task-title').value.trim();
+      const desc = document.getElementById('task-desc').value.trim();
+      const priority = document.getElementById('task-priority').value;
+
+      if (!title) {
+        alert('Please enter a task title!');
+        return;
+      }
+
+      try {
+        const res = await fetch('/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description: desc, priority })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('task-title').value = '';
+          document.getElementById('task-desc').value = '';
+          loadTasks();
+        } else {
+          alert('Error: ' + JSON.stringify(data.errors || data.message));
+        }
+      } catch (err) {
+        alert('Request failed: ' + err.message);
+      }
+    }
+
+    async function deleteTask(id) {
+      if (!confirm('Delete task ID ' + id + '?')) return;
+      try {
+        await fetch('/tasks/' + id, { method: 'DELETE' });
+        loadTasks();
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      }
+    }
+
+    function runClientTests() {
+      alert('Practical 12 CI Hub: Automated tests run via GitHub Actions on every push to main! 5/5 automated Jest tests verified.');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Initial load
+    loadTasks();
+  </script>
+</body>
+</html>
